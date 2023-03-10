@@ -5,6 +5,7 @@ val exposed_version : String by project
 val koin_ktor: String by project
 val h2_version : String by project
 val koin_version: String by project
+val postgresql: String by project
 
 plugins {
 
@@ -63,6 +64,15 @@ dependencies {
     // Exposed
     implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
+
+    // HikariCP
+    implementation("com.zaxxer:HikariCP:5.0.1")
+
+    // Postgres
+    implementation("org.postgresql:postgresql:$postgresql")
+
+    // Jbcrypt
+    implementation("org.mindrot:jbcrypt:0.4")
 
     // Koin for Ktor
     implementation("io.insert-koin:koin-ktor:$koin_ktor")

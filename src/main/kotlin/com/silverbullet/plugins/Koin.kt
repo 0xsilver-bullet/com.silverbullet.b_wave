@@ -1,5 +1,7 @@
 package com.silverbullet.plugins
 
+import com.silverbullet.core.di.coreModule
+import com.silverbullet.core.di.daoModule
 import com.silverbullet.di.appModule
 import com.silverbullet.di.controllersModule
 import io.ktor.server.application.*
@@ -13,6 +15,8 @@ fun Application.configureKoin(){
         slf4jLogger()
         modules(
             appModule,
+            coreModule,
+            daoModule,
             controllersModule
         )
     }

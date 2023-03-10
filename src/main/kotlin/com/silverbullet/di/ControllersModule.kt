@@ -6,6 +6,6 @@ import org.koin.dsl.module
 val controllersModule = module {
 
     single {
-        AuthController()
+        AuthController(get(), get())
     }
 }
