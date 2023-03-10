@@ -1,4 +1,4 @@
-package com.silverbullet.core.security
+package com.silverbullet.core.security.hashing
 
 import org.mindrot.jbcrypt.BCrypt
 

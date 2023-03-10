@@ -7,7 +7,9 @@ import com.silverbullet.core.databse.utils.DbError
 import com.silverbullet.core.databse.utils.DbOperation
 import com.silverbullet.core.databse.utils.PSQLErrorCodes
 import org.jetbrains.exposed.exceptions.ExposedSQLException
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.sql.select
 
 interface UserDao {
 
@@ -18,6 +20,11 @@ interface UserDao {
         password: String,
         salt: String
     ): DbOperation<UserEntity>
+
+    /**
+     * @return user entity if it's found
+     */
+    suspend fun getUserByUsername(username: String): DbOperation.Success<UserEntity?>
 }
 
 class UserDaoImpl : UserDao {
@@ -57,4 +64,22 @@ class UserDaoImpl : UserDao {
                 DbOperation.Failure(DbError.UnknownError)
             }
         }
+
+    override suspend fun getUserByUsername(username: String): DbOperation.Success<UserEntity?> =
+        dbQuery {
+            val user = UsersTable
+                .select { UsersTable.username eq username }
+                .singleOrNull()
+                ?.toUserEntity()
+            DbOperation.Success(user)
+        }
+
+    private fun ResultRow.toUserEntity(): UserEntity = UserEntity(
+        id = this[UsersTable.id].value,
+        name = this[UsersTable.name],
+        username = this[UsersTable.username],
+        profilePicUrl = this[UsersTable.profilePicUrl],
+        password = this[UsersTable.password],
+        salt = this[UsersTable.salt]
+    )
 }

@@ -1,4 +1,4 @@
-package com.silverbullet.core.security
+package com.silverbullet.core.security.hashing
 
 data class SaltedHash(
     val salt: String,

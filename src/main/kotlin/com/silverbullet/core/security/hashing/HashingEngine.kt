@@ -1,4 +1,4 @@
-package com.silverbullet.core.security
+package com.silverbullet.core.security.hashing
 
 interface HashingEngine {
 

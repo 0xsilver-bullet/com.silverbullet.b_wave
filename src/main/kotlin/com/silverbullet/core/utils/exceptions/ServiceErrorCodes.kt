@@ -1,5 +1,6 @@
 package com.silverbullet.core.utils.exceptions
 
+
 object ServiceErrorCodes {
 
     const val UnexpectedServiceErrorCode = 0
@@ -8,4 +9,8 @@ object ServiceErrorCodes {
 
     // Authentication Codes
     const val UsernameAlreadyExistsCode = 2
+
+    const val UserNotFoundCode = 3
+
+    const val InvalidCredentialsCode = 4
 }
