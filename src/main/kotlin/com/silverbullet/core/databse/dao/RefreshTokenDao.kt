@@ -1,5 +1,6 @@
 package com.silverbullet.core.databse.dao
 
+import com.mongodb.MongoWriteException
 import com.silverbullet.core.databse.entity.RefreshTokenEntity
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
@@ -7,7 +8,7 @@ import org.litote.kmongo.setValue
 
 interface RefreshTokenDao {
 
-    suspend fun insertRefreshToken(
+    suspend fun upsertRefreshToken(
         token: RefreshTokenEntity
     )
 
@@ -30,8 +31,20 @@ class RefreshTokenDaoImpl(
 
     private val collection = db.getCollection<RefreshTokenEntity>()
 
-    override suspend fun insertRefreshToken(token: RefreshTokenEntity) {
-        collection.insertOne(token)
+    override suspend fun upsertRefreshToken(token: RefreshTokenEntity) {
+        try {
+            collection.insertOne(token)
+
+        } catch (e: MongoWriteException) {
+            if (e.code == 11000) {
+                collection.updateOne(
+                    filter = RefreshTokenEntity::userId eq token.userId,
+                    update = setValue(RefreshTokenEntity::token, token.token)
+                )
+            } else {
+                throw e
+            }
+        }
     }
 
     override suspend fun getTokenByUserId(userId: Int): RefreshTokenEntity? {

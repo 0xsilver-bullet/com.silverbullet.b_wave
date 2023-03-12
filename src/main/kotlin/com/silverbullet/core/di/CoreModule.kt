@@ -2,6 +2,7 @@ package com.silverbullet.core.di
 
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.LoggerContext
+import com.silverbullet.core.databse.MongoDbFactory
 import com.silverbullet.core.security.hashing.HashingEngine
 import com.silverbullet.core.security.hashing.HashingEngineImpl
 import com.silverbullet.core.security.token.JwtTokenService
@@ -47,6 +48,6 @@ val coreModule = module {
         KMongo
             .createClient()
             .coroutine
-            .getDatabase("b_wave_db")
+            .getDatabase(MongoDbFactory.dbname)
     }
 }

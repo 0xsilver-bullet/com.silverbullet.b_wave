@@ -64,7 +64,7 @@ class AuthController(
         val tokens = generateUserTokens(user.id)
         // save the user refresh token in the db
         val refreshToken = RefreshTokenEntity(userId = user.id, token = tokens.refreshToken)
-        refreshTokenDao.insertRefreshToken(refreshToken)
+        refreshTokenDao.upsertRefreshToken(refreshToken)
         return LoginResponse(
             user = user.toUserInfo(),
             tokens = tokens
