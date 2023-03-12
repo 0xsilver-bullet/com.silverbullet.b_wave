@@ -15,4 +15,7 @@ object ServiceErrorCodes {
     const val InvalidCredentialsCode = 4
 
     const val InvalidRefreshTokenCode = 5
+
+    // Connection Codes
+    const val AlreadyConnectedUsersCode = 6
 }

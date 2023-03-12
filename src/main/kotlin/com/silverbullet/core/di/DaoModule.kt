@@ -1,9 +1,6 @@
 package com.silverbullet.core.di
 
-import com.silverbullet.core.databse.dao.RefreshTokenDao
-import com.silverbullet.core.databse.dao.RefreshTokenDaoImpl
-import com.silverbullet.core.databse.dao.UserDao
-import com.silverbullet.core.databse.dao.UserDaoImpl
+import com.silverbullet.core.databse.dao.*
 import org.koin.dsl.module
 
 val daoModule = module {
@@ -14,6 +11,10 @@ val daoModule = module {
 
     single<RefreshTokenDao> {
         RefreshTokenDaoImpl(get())
+    }
+
+    single<ConnectionDao> {
+        ConnectionDaoImpl()
     }
 
 }

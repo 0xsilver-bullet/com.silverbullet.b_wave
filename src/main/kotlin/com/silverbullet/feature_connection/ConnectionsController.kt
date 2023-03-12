@@ -1,0 +1,48 @@
+package com.silverbullet.feature_connection
+
+import com.silverbullet.core.databse.dao.ConnectionDao
+import com.silverbullet.core.databse.dao.UserDao
+import com.silverbullet.core.databse.utils.DbError
+import com.silverbullet.core.databse.utils.DbOperation
+import com.silverbullet.core.mapper.toUserInfo
+import com.silverbullet.core.model.UserInfo
+import com.silverbullet.core.utils.exceptions.UnexpectedServiceError
+import com.silverbullet.feature_auth.exception.UserNotFound
+import com.silverbullet.feature_connection.exception.AlreadyConnectedUsers
+import com.silverbullet.feature_connection.request.ConnectRequest
+import com.silverbullet.feature_connection.response.ConnectResponse
+
+class ConnectionsController(
+    private val userDao: UserDao,
+    private val connectionDao: ConnectionDao
+) {
+
+    suspend fun processConnectRequest(
+        request: ConnectRequest,
+        requesterId: Int
+    ): ConnectResponse {
+        val targetUser = userDao
+            .getUserByUsername(request.username)
+            .data ?: throw UserNotFound()
+        val connectionResult = connectionDao
+            .createUserConnection(
+                requesterId.coerceAtMost(targetUser.id), // just to ensure smaller id is passed first
+                targetUser.id.coerceAtLeast(requesterId)
+            )
+        if (connectionResult is DbOperation.Success)
+            return ConnectResponse(connectedUser = targetUser.toUserInfo())
+        // Then connecting failed
+        when ((connectionResult as DbOperation.Failure).error) {
+            is DbError.DuplicateKey -> throw AlreadyConnectedUsers()
+            else -> throw UnexpectedServiceError()
+        }
+    }
+
+    suspend fun processGetUserConnectionsRequest(userId: Int): List<UserInfo> {
+        val userConnections = connectionDao.getUserConnections(userId).data
+        return userDao
+            .getUsersByIds(userConnections)
+            .data
+            .map { it.toUserInfo() }
+    }
+}

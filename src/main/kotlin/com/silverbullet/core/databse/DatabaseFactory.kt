@@ -1,5 +1,6 @@
 package com.silverbullet.core.databse
 
+import com.silverbullet.core.databse.table.ConnectionsTable
 import com.silverbullet.core.databse.table.UsersTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -25,7 +26,10 @@ object DatabaseFactory {
         val hikariDataSource = hikari(globalConfig)
         val database = Database.connect(hikariDataSource)
         transaction(database) {
-            SchemaUtils.create(UsersTable)
+            SchemaUtils.create(
+                UsersTable,
+                ConnectionsTable
+            )
         }
     }
 

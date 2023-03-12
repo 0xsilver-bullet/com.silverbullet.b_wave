@@ -25,6 +25,8 @@ interface UserDao {
      * @return user entity if it's found
      */
     suspend fun getUserByUsername(username: String): DbOperation.Success<UserEntity?>
+
+    suspend fun getUsersByIds(userIds: List<Int>): DbOperation.Success<List<UserEntity>>
 }
 
 class UserDaoImpl : UserDao {
@@ -72,6 +74,14 @@ class UserDaoImpl : UserDao {
                 .singleOrNull()
                 ?.toUserEntity()
             DbOperation.Success(user)
+        }
+
+    override suspend fun getUsersByIds(userIds: List<Int>): DbOperation.Success<List<UserEntity>> =
+        dbQuery {
+            val users = UsersTable
+                .select { UsersTable.id inList userIds }
+                .map { it.toUserEntity() }
+            DbOperation.Success(users)
         }
 
     private fun ResultRow.toUserEntity(): UserEntity = UserEntity(

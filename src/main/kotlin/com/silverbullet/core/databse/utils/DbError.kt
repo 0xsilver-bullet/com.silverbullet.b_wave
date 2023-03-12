@@ -9,5 +9,9 @@ sealed interface DbError{
         val name: String
     ): DbError
 
+    data class ViolatedConstraint(
+        val constraint: String?
+    ): DbError
+
     object UnknownError: DbError
 }

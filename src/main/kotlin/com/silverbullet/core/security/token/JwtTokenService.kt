@@ -22,10 +22,12 @@ class JwtTokenService(
         }
         val accessToken =
             baseToken
+                .withAudience(accessTokenConfig.audience)
                 .withExpiresAt(Date(System.currentTimeMillis() + accessTokenConfig.expirationDate))
                 .sign(Algorithm.HMAC256(accessTokenConfig.secret))
         val refreshToken =
             baseToken
+                .withAudience(refreshTokenConfig.audience)
                 .withExpiresAt(Date(System.currentTimeMillis() + refreshTokenConfig.expirationDate))
                 .sign(Algorithm.HMAC256(refreshTokenConfig.secret))
         return Pair(accessToken, refreshToken)
