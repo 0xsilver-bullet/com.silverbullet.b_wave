@@ -80,7 +80,7 @@ class AuthController(
         val currentDate = Date()
         if (userToken.token == request.token && currentDate.before(refreshTokenData.expirationDate)) {
             val newUserTokens = generateUserTokens(userId)
-            if(!refreshTokenDao.updateUserRefreshToken(userId,newUserTokens.refreshToken)){
+            if (!refreshTokenDao.updateUserRefreshToken(userId, newUserTokens.refreshToken)) {
                 // Failed to update the refresh token which is unexpected (shouldn't happen)
                 throw UnexpectedServiceError()
             }
@@ -88,6 +88,11 @@ class AuthController(
         }
         // then the refresh token is not valid so throw invalid refresh token exception
         throw InvalidRefreshToken()
+    }
+
+    suspend fun processLogoutRequest(userId: Int) {
+        // for now just delete the refresh token
+        refreshTokenDao.deleteTokenByUserId(userId)
     }
 
     private fun generateUserTokens(userId: Int): TokenInfo {
