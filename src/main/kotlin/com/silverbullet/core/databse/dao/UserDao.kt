@@ -26,6 +26,8 @@ interface UserDao {
      */
     suspend fun getUserByUsername(username: String): DbOperation.Success<UserEntity?>
 
+    suspend fun getUserById(userId: Int): DbOperation.Success<UserEntity?>
+
     suspend fun getUsersByIds(userIds: List<Int>): DbOperation.Success<List<UserEntity>>
 }
 
@@ -71,6 +73,15 @@ class UserDaoImpl : UserDao {
         dbQuery {
             val user = UsersTable
                 .select { UsersTable.username eq username }
+                .singleOrNull()
+                ?.toUserEntity()
+            DbOperation.Success(user)
+        }
+
+    override suspend fun getUserById(userId: Int): DbOperation.Success<UserEntity?> =
+        dbQuery {
+            val user = UsersTable
+                .select { UsersTable.id eq userId }
                 .singleOrNull()
                 ?.toUserEntity()
             DbOperation.Success(user)

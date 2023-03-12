@@ -3,6 +3,9 @@ package com.silverbullet.core.di
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.LoggerContext
 import com.silverbullet.core.databse.MongoDbFactory
+import com.silverbullet.core.events.BWaveEventsEngine
+import com.silverbullet.core.events.EventsEngine
+import com.silverbullet.core.events.serialization.buildEventsSerializer
 import com.silverbullet.core.security.hashing.HashingEngine
 import com.silverbullet.core.security.hashing.HashingEngineImpl
 import com.silverbullet.core.security.token.JwtTokenService
@@ -17,6 +20,14 @@ import org.litote.kmongo.reactivestreams.KMongo
 import org.slf4j.LoggerFactory
 
 val coreModule = module {
+
+    single {
+        buildEventsSerializer()
+    }
+
+    single<EventsEngine> {
+        BWaveEventsEngine(get())
+    }
 
     single<HashingEngine> {
         HashingEngineImpl()

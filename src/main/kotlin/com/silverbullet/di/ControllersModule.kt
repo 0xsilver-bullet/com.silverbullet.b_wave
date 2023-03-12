@@ -11,6 +11,6 @@ val controllersModule = module {
     }
 
     single {
-        ConnectionsController(get(), get())
+        ConnectionsController(get(), get(), get())
     }
 }

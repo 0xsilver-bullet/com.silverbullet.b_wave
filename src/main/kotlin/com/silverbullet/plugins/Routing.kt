@@ -1,5 +1,6 @@
 package com.silverbullet.plugins
 
+import com.silverbullet.core.events.configureEventsRoute
 import com.silverbullet.feature_auth.route.configureAuthRoutes
 import com.silverbullet.feature_connection.route.configureConnectionsRoutes
 import io.ktor.server.routing.*
@@ -9,6 +10,7 @@ fun Application.configureRouting() {
     
     routing {
 
+        configureEventsRoute()
         configureAuthRoutes()
         configureConnectionsRoutes()
     }
