@@ -1,15 +1,15 @@
 package com.silverbullet.core.security.token
 
-import java.util.Date
+import com.silverbullet.core.security.token.model.RefreshTokenData
+import com.silverbullet.core.security.token.model.TokenClaim
 
 interface TokenService {
 
-    fun generateAccessToken(vararg claims: TokenClaim): String
+    /**
+     * @return pair of (access token, refresh token)
+     */
+    fun generateUserTokens(vararg claims: TokenClaim): Pair<String, String>
 
-    fun generateRefreshToken(vararg claims: TokenClaim): String
-
-    fun extractUserId(token: String): Int?
-
-    fun extractExpirationDate(token: String): Date?
+    fun decodeRefreshToken(token: String): RefreshTokenData?
 
 }

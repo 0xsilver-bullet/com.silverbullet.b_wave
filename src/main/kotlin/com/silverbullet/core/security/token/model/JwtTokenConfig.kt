@@ -1,4 +1,4 @@
-package com.silverbullet.core.security.token
+package com.silverbullet.core.security.token.model
 
 
 data class JwtTokenConfig(

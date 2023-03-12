@@ -3,6 +3,7 @@ package com.silverbullet.core.databse.dao
 import com.silverbullet.core.databse.entity.RefreshTokenEntity
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
+import org.litote.kmongo.setValue
 
 interface RefreshTokenDao {
 
@@ -16,6 +17,11 @@ interface RefreshTokenDao {
      * @return true if deleted ,false if it's not found (or unexpected behavior)
      */
     suspend fun deleteTokenByUserId(userId: Int): Boolean
+
+    /**
+     * @return indicate if it's successful or not.
+     */
+    suspend fun updateUserRefreshToken(userId: Int, newRefreshToken: String): Boolean
 }
 
 class RefreshTokenDaoImpl(
@@ -37,5 +43,14 @@ class RefreshTokenDaoImpl(
         return collection
             .deleteOne(RefreshTokenEntity::userId eq userId)
             .deletedCount == 1L
+    }
+
+    override suspend fun updateUserRefreshToken(userId: Int, newRefreshToken: String): Boolean {
+        return collection
+            .updateOne(
+                filter = RefreshTokenEntity::userId eq userId,
+                update = setValue(RefreshTokenEntity::token, newRefreshToken)
+            )
+            .wasAcknowledged()
     }
 }

@@ -4,7 +4,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.silverbullet.core.security.token.JwtTokenConfig
+import com.silverbullet.core.security.token.model.JwtTokenConfig
 import io.ktor.server.application.*
 import org.koin.core.qualifier.named
 import org.koin.ktor.ext.inject

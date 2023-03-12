@@ -8,7 +8,7 @@ import com.silverbullet.core.databse.utils.DbOperation
 import com.silverbullet.core.mapper.toUserInfo
 import com.silverbullet.core.security.hashing.HashingEngine
 import com.silverbullet.core.security.hashing.SaltedHash
-import com.silverbullet.core.security.token.TokenClaim
+import com.silverbullet.core.security.token.model.TokenClaim
 import com.silverbullet.core.security.token.TokenService
 import com.silverbullet.core.utils.exceptions.UnexpectedServiceError
 import com.silverbullet.feature_auth.exception.InvalidCredentials
@@ -54,7 +54,6 @@ class AuthController(
     }
 
     suspend fun processLoginRequest(request: LoginRequest): LoginResponse {
-
         val user = userDao
             .getUserByUsername(request.username)
             .data ?: throw UserNotFound()
@@ -73,20 +72,19 @@ class AuthController(
     }
 
     suspend fun processRefreshTokenRequest(request: RefreshTokenRequest): TokenInfo {
-        val userId = tokenService
-            .extractUserId(request.token) ?: throw InvalidRefreshToken()
+        val refreshTokenData = tokenService
+            .decodeRefreshToken(request.token) ?: throw InvalidRefreshToken()
+        val userId = refreshTokenData.userId
         val userToken = refreshTokenDao
             .getTokenByUserId(userId) ?: throw InvalidRefreshToken()
-        val expirationDate = tokenService.extractExpirationDate(request.token)
         val currentDate = Date()
-        if (userToken.token == request.token && currentDate.before(expirationDate)) {
-            // Then this token is valid, so we generate the access and refresh token.
-            // TODO: Refactor this code to just update the existing token instead of deleting and inserting.
-            val newUserToken = generateUserTokens(userId)
-            refreshTokenDao.deleteTokenByUserId(userId)
-            val newRefreshToken = RefreshTokenEntity(userId = userId, token = newUserToken.refreshToken)
-            refreshTokenDao.insertRefreshToken(newRefreshToken)
-            return generateUserTokens(userId)
+        if (userToken.token == request.token && currentDate.before(refreshTokenData.expirationDate)) {
+            val newUserTokens = generateUserTokens(userId)
+            if(!refreshTokenDao.updateUserRefreshToken(userId,newUserTokens.refreshToken)){
+                // Failed to update the refresh token which is unexpected (shouldn't happen)
+                throw UnexpectedServiceError()
+            }
+            return newUserTokens
         }
         // then the refresh token is not valid so throw invalid refresh token exception
         throw InvalidRefreshToken()
@@ -94,8 +92,7 @@ class AuthController(
 
     private fun generateUserTokens(userId: Int): TokenInfo {
         val userIdClaim = TokenClaim(key = "userId", value = userId.toString())
-        val accessToken = tokenService.generateAccessToken(userIdClaim)
-        val refreshToken = tokenService.generateRefreshToken(userIdClaim)
+        val (accessToken, refreshToken) = tokenService.generateUserTokens(userIdClaim)
         return TokenInfo(accessToken, refreshToken)
     }
 }

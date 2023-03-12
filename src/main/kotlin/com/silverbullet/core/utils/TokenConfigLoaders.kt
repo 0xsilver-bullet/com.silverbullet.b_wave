@@ -1,6 +1,6 @@
 package com.silverbullet.core.utils
 
-import com.silverbullet.core.security.token.JwtTokenConfig
+import com.silverbullet.core.security.token.model.JwtTokenConfig
 import io.ktor.server.config.*
 
 fun loadAccessTokenConfig(appConf: ApplicationConfig): JwtTokenConfig {
