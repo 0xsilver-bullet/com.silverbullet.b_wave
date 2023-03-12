@@ -25,6 +25,29 @@ class JwtTokenService(
         )
     }
 
+    override fun extractUserId(token: String): Int? {
+        return try {
+            JWT
+                .decode(token)
+                .claims["userId"]
+                ?.toString()
+                ?.replace("\"", "") // it returns a string like ""1"" which fails to convert to int
+                ?.toIntOrNull()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    override fun extractExpirationDate(token: String): Date? {
+        return try {
+            JWT
+                .decode(token)
+                .expiresAt
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun generateToken(
         expirationMillis: Long,
         secret: String,

@@ -13,4 +13,6 @@ object ServiceErrorCodes {
     const val UserNotFoundCode = 3
 
     const val InvalidCredentialsCode = 4
+
+    const val InvalidRefreshTokenCode = 5
 }

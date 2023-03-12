@@ -6,6 +6,7 @@ val koin_ktor: String by project
 val h2_version : String by project
 val koin_version: String by project
 val postgresql: String by project
+val kmongo: String by project
 
 plugins {
 
@@ -70,6 +71,10 @@ dependencies {
 
     // Postgres
     implementation("org.postgresql:postgresql:$postgresql")
+
+    // KMONGO
+    implementation("org.litote.kmongo:kmongo:$kmongo")
+    implementation("org.litote.kmongo:kmongo-coroutine:$kmongo")
 
     // Jbcrypt
     implementation("org.mindrot:jbcrypt:0.4")

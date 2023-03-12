@@ -7,11 +7,4 @@ import kotlinx.serialization.Serializable
 data class LoginResponse(
     val user: UserInfo,
     val tokens: TokenInfo
-) {
-
-    @Serializable
-    data class TokenInfo(
-        val accessToken: String,
-        val refreshToken: String
-    )
-}
+)
