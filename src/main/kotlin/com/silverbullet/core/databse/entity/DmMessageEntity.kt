@@ -1,11 +1,16 @@
 package com.silverbullet.core.databse.entity
 
-data class MessageEntity(
+import org.bson.codecs.pojo.annotations.BsonId
+import org.bson.types.ObjectId
+
+data class DmMessageEntity(
     val text: String,
     val senderId: Int,
     val receiverId: Int,
     val seen: Boolean,
-    val timestamp: Long
+    val timestamp: Long,
+    @BsonId
+    val id: String = ObjectId().toString()
 ) {
 
     companion object {
@@ -14,8 +19,8 @@ data class MessageEntity(
             text: String,
             senderId: Int,
             receiverId: Int
-        ): MessageEntity {
-            return MessageEntity(
+        ): DmMessageEntity {
+            return DmMessageEntity(
                 text = text,
                 senderId = senderId,
                 receiverId = receiverId,

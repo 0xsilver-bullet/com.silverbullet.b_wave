@@ -1,6 +1,7 @@
 package com.silverbullet.core.events
 
-import com.silverbullet.core.databse.entity.MessageEntity
+import com.silverbullet.core.databse.dao.DmMessageDao
+import com.silverbullet.core.databse.entity.DmMessageEntity
 import com.silverbullet.core.events.client.ClientEvent
 import com.silverbullet.core.events.client.SendDmMessageEvent
 import com.silverbullet.core.events.server.ReceivedDmMessageEvent
@@ -16,7 +17,10 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
 
-class BWaveEventsEngine(private val serializer: Json) : EventsEngine {
+class BWaveEventsEngine(
+    private val serializer: Json,
+    private val dmsDao: DmMessageDao
+) : EventsEngine {
 
     private val connections = ConcurrentHashMap<Int, DefaultWebSocketServerSession>()
 
@@ -72,19 +76,19 @@ class BWaveEventsEngine(private val serializer: Json) : EventsEngine {
         userId: Int,
         event: SendDmMessageEvent
     ) {
-        val messageEntity = MessageEntity
+        val dmMessageEntity = DmMessageEntity
             .create(
                 text = event.text,
                 senderId = userId,
                 receiverId = event.receiverId
             )
 
-        // TODO: Handle adding the message to a messages table
+        dmsDao.insert(dmMessageEntity)
 
         // notify the receiver user
-        val receivedMessageServerEvent = ReceivedDmMessageEvent(message = messageEntity.toDmMessage())
-        sendServerEvent(userId = messageEntity.senderId, event = receivedMessageServerEvent)
-        sendServerEvent(userId = messageEntity.receiverId, event = receivedMessageServerEvent)
+        val receivedMessageServerEvent = ReceivedDmMessageEvent(message = dmMessageEntity.toDmMessage())
+        sendServerEvent(userId = dmMessageEntity.senderId, event = receivedMessageServerEvent)
+        sendServerEvent(userId = dmMessageEntity.receiverId, event = receivedMessageServerEvent)
     }
 
 }
