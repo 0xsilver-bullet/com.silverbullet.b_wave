@@ -4,10 +4,12 @@ import com.silverbullet.core.databse.dao.ConnectionDao
 import com.silverbullet.core.databse.dao.DmMessageDao
 import com.silverbullet.core.databse.entity.DmMessageEntity
 import com.silverbullet.core.events.client.ClientEvent
+import com.silverbullet.core.events.client.SeenDmMessageEvent
 import com.silverbullet.core.events.client.SendDmMessageEvent
 import com.silverbullet.core.events.server.FriendOnlineStatusEvent
 import com.silverbullet.core.events.server.ReceivedDmMessageEvent
 import com.silverbullet.core.events.server.ServerEvent
+import com.silverbullet.core.events.server.UpdateDmMessageEvent
 import com.silverbullet.core.mapper.toDmMessage
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -75,6 +77,7 @@ class BWaveEventsEngine(
     private suspend fun handleUserEvent(userId: Int, event: ClientEvent) {
         when (event) {
             is SendDmMessageEvent -> handleSendDmMessageEvent(userId, event)
+            is SeenDmMessageEvent -> handleSeenDmMessageEvent(userId, event)
         }
     }
 
@@ -95,6 +98,24 @@ class BWaveEventsEngine(
         val receivedMessageServerEvent = ReceivedDmMessageEvent(message = dmMessageEntity.toDmMessage())
         sendServerEvent(userId = dmMessageEntity.senderId, event = receivedMessageServerEvent)
         sendServerEvent(userId = dmMessageEntity.receiverId, event = receivedMessageServerEvent)
+    }
+
+    private suspend fun handleSeenDmMessageEvent(
+        userId: Int,
+        event: SeenDmMessageEvent
+    ) {
+        val updatedMessage = dmsDao
+            .markMessageAsSeen(
+                messageId = event.messageId,
+                receiverId = userId
+            ) ?: return
+        // if the updated message is null then this message already doesn't exist.
+        // notice than the user who's trying to mark message as seen must be the receiver always.
+
+        // now we should notify the sender with the updated message.
+        val updateMessageEvent = UpdateDmMessageEvent(updatedMessage.toDmMessage())
+
+        sendServerEvent(userId = updatedMessage.senderId, updateMessageEvent)
     }
 
     /**

@@ -8,5 +8,6 @@ data class DmMessage(
     val senderId: Int,
     val receiverId: Int,
     val seen: Boolean,
-    val timestamp: Long
+    val timestamp: Long,
+    val id: String
 )

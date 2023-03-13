@@ -1,10 +1,13 @@
 package com.silverbullet.core.databse.dao
 
+import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.ReturnDocument
 import com.silverbullet.core.databse.entity.DmMessageEntity
 import org.litote.kmongo.and
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
 import org.litote.kmongo.or
+import org.litote.kmongo.setValue
 
 interface DmMessageDao {
 
@@ -13,6 +16,11 @@ interface DmMessageDao {
     suspend fun delete(messageId: String)
 
     suspend fun getUsersChat(u1Id: Int, u2Id: Int): List<DmMessageEntity>
+
+    /**
+     * @return In case the message is updated it will return the new version, if not it will return null.
+     */
+    suspend fun markMessageAsSeen(messageId: String, receiverId: Int): DmMessageEntity?
 }
 
 class DmMessageDaoImpl(db: CoroutineDatabase) : DmMessageDao {
@@ -37,5 +45,17 @@ class DmMessageDaoImpl(db: CoroutineDatabase) : DmMessageDao {
             )
             .descendingSort(DmMessageEntity::timestamp)
             .toList()
+    }
+
+    override suspend fun markMessageAsSeen(messageId: String, receiverId: Int): DmMessageEntity? {
+        return collection
+            .findOneAndUpdate(
+                and(
+                    DmMessageEntity::id eq messageId,
+                    DmMessageEntity::receiverId eq receiverId
+                ),
+                setValue(DmMessageEntity::seen, true),
+                FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
+            )
     }
 }

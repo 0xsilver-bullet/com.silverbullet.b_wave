@@ -9,5 +9,6 @@ fun DmMessageEntity.toDmMessage(): DmMessage =
         senderId = senderId,
         receiverId = receiverId,
         seen = seen,
-        timestamp = timestamp
+        timestamp = timestamp,
+        id = id
     )
