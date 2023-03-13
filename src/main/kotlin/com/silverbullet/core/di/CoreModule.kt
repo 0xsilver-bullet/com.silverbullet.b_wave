@@ -26,7 +26,7 @@ val coreModule = module {
     }
 
     single<EventsEngine> {
-        BWaveEventsEngine(get(), get())
+        BWaveEventsEngine(get(), get(), get())
     }
 
     single<HashingEngine> {

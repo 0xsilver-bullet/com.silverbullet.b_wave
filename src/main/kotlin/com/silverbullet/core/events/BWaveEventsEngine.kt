@@ -1,9 +1,11 @@
 package com.silverbullet.core.events
 
+import com.silverbullet.core.databse.dao.ConnectionDao
 import com.silverbullet.core.databse.dao.DmMessageDao
 import com.silverbullet.core.databse.entity.DmMessageEntity
 import com.silverbullet.core.events.client.ClientEvent
 import com.silverbullet.core.events.client.SendDmMessageEvent
+import com.silverbullet.core.events.server.FriendOnlineStatusEvent
 import com.silverbullet.core.events.server.ReceivedDmMessageEvent
 import com.silverbullet.core.events.server.ServerEvent
 import com.silverbullet.core.mapper.toDmMessage
@@ -19,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class BWaveEventsEngine(
     private val serializer: Json,
+    private val connectionDao: ConnectionDao,
     private val dmsDao: DmMessageDao
 ) : EventsEngine {
 
@@ -40,6 +43,8 @@ class BWaveEventsEngine(
         }
         connections[userId] = session
 
+        onUserConnected(userId)
+
         try {
             for (frame in session.incoming) {
                 val eventJson = (frame as? Frame.Text)?.readText() ?: continue
@@ -53,6 +58,7 @@ class BWaveEventsEngine(
             }
         } finally {
             connections.remove(userId)
+            notifyFriendsWithOfflineStatus(userId)
         }
     }
 
@@ -89,6 +95,37 @@ class BWaveEventsEngine(
         val receivedMessageServerEvent = ReceivedDmMessageEvent(message = dmMessageEntity.toDmMessage())
         sendServerEvent(userId = dmMessageEntity.senderId, event = receivedMessageServerEvent)
         sendServerEvent(userId = dmMessageEntity.receiverId, event = receivedMessageServerEvent)
+    }
+
+    /**
+     * sends user default events he should receive once he's connected
+     */
+    private suspend fun onUserConnected(userId: Int) = coroutineScope {
+        launch {
+            // get all user friends and notify about them.
+            val userConnections = connectionDao.getUserConnections(userId).data
+            userConnections.forEach { friendId ->
+                if (connections[friendId] != null) {
+                    // notify the new connected user that his friend is online
+                    val event1 = FriendOnlineStatusEvent(friendId = friendId, online = true)
+                    sendServerEvent(userId, event1)
+
+                    // notify his friend
+                    val event2 = FriendOnlineStatusEvent(friendId = userId, online = true)
+                    sendServerEvent(friendId, event2)
+                }
+            }
+        }
+    }
+
+    private suspend fun notifyFriendsWithOfflineStatus(offlineUserId: Int) = coroutineScope {
+        launch {
+            val userFriends = connectionDao.getUserConnections(offlineUserId).data
+            val offlineEvent = FriendOnlineStatusEvent(offlineUserId, online = false)
+            userFriends.forEach { friendId ->
+                sendServerEvent(friendId, offlineEvent)
+            }
+        }
     }
 
 }
