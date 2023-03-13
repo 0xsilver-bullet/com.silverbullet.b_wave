@@ -2,6 +2,7 @@ package com.silverbullet.di
 
 import com.silverbullet.feature_auth.AuthController
 import com.silverbullet.feature_connection.ConnectionsController
+import com.silverbullet.feature_dm.DmController
 import org.koin.dsl.module
 
 val controllersModule = module {
@@ -12,5 +13,9 @@ val controllersModule = module {
 
     single {
         ConnectionsController(get(), get(), get())
+    }
+
+    single {
+        DmController(get())
     }
 }
