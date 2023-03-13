@@ -21,6 +21,8 @@ private val eventsSerializationModule = SerializersModule {
 
         subclass(UpdateDmMessageEvent::class)
 
+        subclass(DmSentEvent::class)
+
     }
 
     polymorphic(ClientEvent::class) {

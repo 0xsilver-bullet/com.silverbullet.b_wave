@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
 @SerialName(SendDmMessageEvent.EventName)
 data class SendDmMessageEvent(
     val text: String,
-    val receiverId: Int
+    val receiverId: Int,
+    val provisionalId: String? = null
 ) : ClientEvent {
 
     companion object {

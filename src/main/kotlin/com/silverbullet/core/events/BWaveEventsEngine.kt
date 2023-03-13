@@ -6,10 +6,7 @@ import com.silverbullet.core.databse.entity.DmMessageEntity
 import com.silverbullet.core.events.client.ClientEvent
 import com.silverbullet.core.events.client.SeenDmMessageEvent
 import com.silverbullet.core.events.client.SendDmMessageEvent
-import com.silverbullet.core.events.server.FriendOnlineStatusEvent
-import com.silverbullet.core.events.server.ReceivedDmMessageEvent
-import com.silverbullet.core.events.server.ServerEvent
-import com.silverbullet.core.events.server.UpdateDmMessageEvent
+import com.silverbullet.core.events.server.*
 import com.silverbullet.core.mapper.toDmMessage
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -94,10 +91,18 @@ class BWaveEventsEngine(
 
         dmsDao.insert(dmMessageEntity)
 
+        val dmMessage = dmMessageEntity.toDmMessage()
+
         // notify the receiver user
-        val receivedMessageServerEvent = ReceivedDmMessageEvent(message = dmMessageEntity.toDmMessage())
-        sendServerEvent(userId = dmMessageEntity.senderId, event = receivedMessageServerEvent)
+        val receivedMessageServerEvent = ReceivedDmMessageEvent(message = dmMessage)
         sendServerEvent(userId = dmMessageEntity.receiverId, event = receivedMessageServerEvent)
+
+        // notify sender that message is sent
+        val senderDmSentEvent = DmSentEvent(
+            message = dmMessage,
+            provisionalId = event.provisionalId
+        )
+        sendServerEvent(userId = dmMessageEntity.senderId, event = senderDmSentEvent)
     }
 
     private suspend fun handleSeenDmMessageEvent(
