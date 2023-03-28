@@ -40,6 +40,7 @@ class AuthController(
             name = request.name,
             username = request.username,
             profilePicUrl = null,
+            profilePicLocalPath = null,
             password = saltedHash.saltedHash,
             salt = saltedHash.salt
         )

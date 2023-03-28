@@ -5,6 +5,7 @@ data class UserEntity(
     val name: String,
     val username: String,
     val profilePicUrl: String?,
+    val profilePicLocalPath: String?,
     val password: String,
     val salt: String
 )

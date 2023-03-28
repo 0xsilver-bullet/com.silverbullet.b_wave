@@ -37,3 +37,4 @@ out/
 
 ### Server config ###
 /src/main/resources/application.conf
+uploads
