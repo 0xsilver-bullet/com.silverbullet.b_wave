@@ -2,6 +2,7 @@ package com.silverbullet.feature_connection
 
 import com.silverbullet.core.databse.dao.ChannelDao
 import com.silverbullet.core.databse.dao.ConnectionDao
+import com.silverbullet.core.databse.dao.FriendshipSecretDao
 import com.silverbullet.core.databse.dao.UserDao
 import com.silverbullet.core.databse.utils.DbError
 import com.silverbullet.core.databse.utils.DbOperation
@@ -12,36 +13,45 @@ import com.silverbullet.core.mapper.toUserInfo
 import com.silverbullet.core.model.Channel
 import com.silverbullet.core.model.UserInfo
 import com.silverbullet.core.utils.exceptions.UnexpectedServiceError
-import com.silverbullet.feature_auth.exception.UserNotFound
 import com.silverbullet.feature_connection.exception.AlreadyConnectedUsers
+import com.silverbullet.feature_connection.exception.FriendshipSecretExpired
+import com.silverbullet.feature_connection.exception.InvalidFriendshipSecret
 import com.silverbullet.feature_connection.request.ConnectRequest
 import com.silverbullet.feature_connection.response.ConnectResponse
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 class ConnectionsController(
+    private val eventsEngine: EventsEngine,
     private val userDao: UserDao,
     private val connectionDao: ConnectionDao,
     private val channelDao: ChannelDao,
-    private val eventsEngine: EventsEngine
+    private val friendshipSecretDao: FriendshipSecretDao
 ) {
 
     suspend fun processConnectRequest(
         request: ConnectRequest,
         requesterId: Int
     ): ConnectResponse {
-        val targetUser = userDao
-            .getUserByUsername(request.username)
-            .data ?: throw UserNotFound()
+        val friendshipSecret =
+            friendshipSecretDao
+                .getFriendshipSecret(request.secret).data ?: throw InvalidFriendshipSecret()
+
+        if (System.currentTimeMillis() > friendshipSecret.expirationDate) {
+            // then this secret is expired
+            throw FriendshipSecretExpired()
+        }
+
         val connectionResult = connectionDao
             .createUserConnection(
-                requesterId.coerceAtMost(targetUser.id), // just to ensure smaller id is passed first
-                targetUser.id.coerceAtLeast(requesterId)
+                requesterId.coerceAtMost(friendshipSecret.user.id), // just to ensure smaller id is passed first
+                friendshipSecret.user.id.coerceAtLeast(requesterId)
             )
         if (connectionResult is DbOperation.Success) {
-            notifyUserAboutConnection(notifiedUser = targetUser.id, userId = requesterId)
-            createDmChannel(targetUser.id, requesterId)
-            return ConnectResponse(connectedUser = targetUser.toUserInfo())
+            notifyUserAboutConnection(notifiedUser = friendshipSecret.user.id, userId = requesterId)
+            createDmChannel(friendshipSecret.user.id, requesterId)
+            return ConnectResponse(connectedUser = friendshipSecret.user.toUserInfo())
         }
         // Then connecting failed
         when ((connectionResult as DbOperation.Failure).error) {
@@ -56,6 +66,12 @@ class ConnectionsController(
             .getUsersByIds(userConnections)
             .data
             .map { it.toUserInfo() }
+    }
+
+    suspend fun generateFriendshipSecret(userId: Int): String {
+        // TODO: Maybe you want the expiration date dynamic instead of always 1 minute
+        val expirationDate = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1)
+        return friendshipSecretDao.createFriendshipSecret(userId, expirationDate).data
     }
 
     /**

@@ -25,4 +25,8 @@ val daoModule = module {
         MessageDaoImpl(get())
     }
 
+    single<FriendshipSecretDao> {
+        FriendshipSecretDaoImpl()
+    }
+
 }

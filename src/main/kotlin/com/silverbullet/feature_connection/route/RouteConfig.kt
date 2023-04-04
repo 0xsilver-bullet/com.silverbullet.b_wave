@@ -12,5 +12,6 @@ fun Route.configureConnectionsRoutes() {
 
         connectRoute(controller = connectionsController)
         userConnections(controller = connectionsController)
+        generateFriendshipSecret(controller = connectionsController)
     }
 }

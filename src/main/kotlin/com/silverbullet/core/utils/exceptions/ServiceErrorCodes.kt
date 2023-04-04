@@ -18,4 +18,8 @@ object ServiceErrorCodes {
 
     // Connection Codes
     const val AlreadyConnectedUsersCode = 6
+
+    const val InvalidFriendshipSecretCode = 7
+
+    const val FriendshipSecretExpiredCode = 8
 }

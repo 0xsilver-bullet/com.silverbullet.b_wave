@@ -1,10 +1,7 @@
 package com.silverbullet.core.databse
 
-import com.silverbullet.core.databse.table.ChannelMembership
+import com.silverbullet.core.databse.table.*
 import com.silverbullet.core.databse.table.ChannelMembership.initializeChannelsMembershipsTableTrigger
-import com.silverbullet.core.databse.table.ChannelsTable
-import com.silverbullet.core.databse.table.ConnectionsTable
-import com.silverbullet.core.databse.table.UsersTable
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.config.*
@@ -34,6 +31,7 @@ object DatabaseFactory {
                 ConnectionsTable,
                 ChannelsTable,
                 ChannelMembership,
+                FriendshipSecretTable,
             )
             initializeChannelsMembershipsTableTrigger()
         }
