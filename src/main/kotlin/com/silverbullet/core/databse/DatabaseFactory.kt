@@ -1,5 +1,8 @@
 package com.silverbullet.core.databse
 
+import com.silverbullet.core.databse.table.ChannelMembership
+import com.silverbullet.core.databse.table.ChannelMembership.initializeChannelsMembershipsTableTrigger
+import com.silverbullet.core.databse.table.ChannelsTable
 import com.silverbullet.core.databse.table.ConnectionsTable
 import com.silverbullet.core.databse.table.UsersTable
 import com.zaxxer.hikari.HikariConfig
@@ -28,8 +31,11 @@ object DatabaseFactory {
         transaction(database) {
             SchemaUtils.create(
                 UsersTable,
-                ConnectionsTable
+                ConnectionsTable,
+                ChannelsTable,
+                ChannelMembership,
             )
+            initializeChannelsMembershipsTableTrigger()
         }
     }
 
