@@ -5,13 +5,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@SerialName(UpdateMessageEvent.EventName)
-data class UpdateMessageEvent(
-    val message: Message
+@SerialName(UpdateMessagesEvent.EventName)
+data class UpdateMessagesEvent(
+    val messages: List<Message>
 ) : ServerEvent {
 
     companion object {
 
-        const val EventName = "update_message_s_event"
+        const val EventName = "update_messages_s_event"
     }
 }

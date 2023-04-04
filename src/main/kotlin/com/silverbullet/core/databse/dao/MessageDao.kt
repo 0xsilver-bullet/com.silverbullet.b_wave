@@ -1,7 +1,5 @@
 package com.silverbullet.core.databse.dao
 
-import com.mongodb.client.model.FindOneAndUpdateOptions
-import com.mongodb.client.model.ReturnDocument
 import com.silverbullet.core.databse.entity.MessageEntity
 import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
@@ -18,7 +16,11 @@ interface MessageDao {
      * @param userId the user who had seen the message.
      * @return In case the message is updated it will return the new version, if not it will return null.
      */
-    suspend fun markMessageAsSeen(messageId: String, userId: Int): MessageEntity?
+    suspend fun markMessagesAsSeen(
+        channelId: Int,
+        messagesIds: List<String>,
+        userId: Int
+    ): List<MessageEntity>
 }
 
 class MessageDaoImpl(db: CoroutineDatabase) : MessageDao {
@@ -40,12 +42,18 @@ class MessageDaoImpl(db: CoroutineDatabase) : MessageDao {
             .toList()
     }
 
-    override suspend fun markMessageAsSeen(messageId: String, userId: Int): MessageEntity? {
-        return collection
-            .findOneAndUpdate(
-                MessageEntity::id eq messageId,
-                addToSet(MessageEntity::seenBy, userId),
-                FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
+    override suspend fun markMessagesAsSeen(
+        channelId: Int,
+        messagesIds: List<String>,
+        userId: Int
+    ): List<MessageEntity> {
+        collection
+            .updateMany(
+                and(MessageEntity::id `in` messagesIds, MessageEntity::channelId eq channelId),
+                addToSet(MessageEntity::seenBy, userId)
             )
+        return collection
+            .find(and(MessageEntity::id `in` messagesIds, MessageEntity::channelId eq channelId))
+            .toList()
     }
 }

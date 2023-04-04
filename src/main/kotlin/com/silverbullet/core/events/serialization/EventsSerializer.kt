@@ -1,7 +1,7 @@
 package com.silverbullet.core.events.serialization
 
 import com.silverbullet.core.events.client.ClientEvent
-import com.silverbullet.core.events.client.SeenMessageEvent
+import com.silverbullet.core.events.client.SeenMessagesEvent
 import com.silverbullet.core.events.client.SendMessageEvent
 import com.silverbullet.core.events.server.*
 import kotlinx.serialization.json.Json
@@ -19,7 +19,7 @@ private val eventsSerializationModule = SerializersModule {
 
         subclass(FriendOnlineStatusEvent::class)
 
-        subclass(UpdateMessageEvent::class)
+        subclass(UpdateMessagesEvent::class)
 
         subclass(MessageSentEvent::class)
 
@@ -31,7 +31,7 @@ private val eventsSerializationModule = SerializersModule {
 
         subclass(SendMessageEvent::class)
 
-        subclass(SeenMessageEvent::class)
+        subclass(SeenMessagesEvent::class)
 
     }
 }

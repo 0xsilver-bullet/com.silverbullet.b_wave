@@ -5,7 +5,7 @@ import com.silverbullet.core.databse.dao.ConnectionDao
 import com.silverbullet.core.databse.dao.MessageDao
 import com.silverbullet.core.databse.entity.MessageEntity
 import com.silverbullet.core.events.client.ClientEvent
-import com.silverbullet.core.events.client.SeenMessageEvent
+import com.silverbullet.core.events.client.SeenMessagesEvent
 import com.silverbullet.core.events.client.SendMessageEvent
 import com.silverbullet.core.events.server.*
 import com.silverbullet.core.mapper.toMessage
@@ -76,7 +76,7 @@ class BWaveEventsEngine(
     private suspend fun handleUserEvent(userId: Int, event: ClientEvent) {
         when (event) {
             is SendMessageEvent -> handleSendMessageEvent(userId, event)
-            is SeenMessageEvent -> handleSeenMessageEvent(userId, event)
+            is SeenMessagesEvent -> handleSeenMessageEvent(userId, event)
         }
     }
 
@@ -99,7 +99,7 @@ class BWaveEventsEngine(
         val receivedMessageServerEvent = ReceivedMessageEvent(message = message)
         val channelMembers = channelDao.getChannelMembersIds(event.channelId).data
         channelMembers.forEach { memberId ->
-            if(memberId != userId){
+            if (memberId != userId) {
                 sendServerEvent(userId = memberId, event = receivedMessageServerEvent)
             }
         }
@@ -114,20 +114,24 @@ class BWaveEventsEngine(
 
     private suspend fun handleSeenMessageEvent(
         userId: Int,
-        event: SeenMessageEvent
+        event: SeenMessagesEvent
     ) {
-        val updatedMessage = messageDao
-            .markMessageAsSeen(
-                messageId = event.messageId,
+        val updatedMessages = messageDao
+            .markMessagesAsSeen(
+                channelId = event.channelId,
+                messagesIds = event.messagesIds,
                 userId = userId
-            ) ?: return
-        // if the updated message is null then this message already doesn't exist.
-        // notice than the user who's trying to mark message as seen must be the receiver always.
+            )
 
-        // now we should notify the sender with the updated message.
-        val updateMessageEvent = UpdateMessageEvent(updatedMessage.toMessage())
+        // now we should notify the channel users with the updated messages.
+        val updateMessagesEvent = UpdateMessagesEvent(updatedMessages.map(MessageEntity::toMessage))
 
-        sendServerEvent(userId = updatedMessage.senderId, updateMessageEvent)
+        val channelUsers = channelDao.getChannelMembersIds(event.channelId).data
+        channelUsers.forEach { channelUserId ->
+            if (channelUserId != userId) {
+                sendServerEvent(channelUserId, updateMessagesEvent)
+            }
+        }
     }
 
     /**

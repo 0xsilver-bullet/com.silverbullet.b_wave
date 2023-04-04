@@ -4,13 +4,14 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@SerialName(SeenMessageEvent.EventName)
-data class SeenMessageEvent(
-    val messageId: String
+@SerialName(SeenMessagesEvent.EventName)
+data class SeenMessagesEvent(
+    val channelId: Int,
+    val messagesIds: List<String>
 ): ClientEvent {
 
     companion object {
 
-        const val EventName = "seen_message_cli_event"
+        const val EventName = "seen_messages_cli_event"
     }
 }
