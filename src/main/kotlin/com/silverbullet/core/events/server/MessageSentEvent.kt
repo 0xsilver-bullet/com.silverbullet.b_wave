@@ -1,6 +1,6 @@
 package com.silverbullet.core.events.server
 
-import com.silverbullet.core.model.DmMessage
+import com.silverbullet.core.model.Message
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -9,14 +9,14 @@ import kotlinx.serialization.Serializable
  * the provisional id is included in case the sender attached a provisional id to the send dm event.
  */
 @Serializable
-@SerialName(DmSentEvent.EventName)
-data class DmSentEvent(
-    val message: DmMessage,
+@SerialName(MessageSentEvent.EventName)
+data class MessageSentEvent(
+    val message: Message,
     val provisionalId: String?
 ) : ServerEvent {
 
     companion object {
 
-        const val EventName = "dm_sent_event_s_event"
+        const val EventName = "dm_message_event_s_event"
     }
 }

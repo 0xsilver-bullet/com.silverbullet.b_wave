@@ -17,8 +17,12 @@ val daoModule = module {
         ConnectionDaoImpl()
     }
 
-    single<DmMessageDao> {
-        DmMessageDaoImpl(get())
+    single<ChannelDao> {
+        ChannelDaoImpl()
+    }
+
+    single<MessageDao> {
+        MessageDaoImpl(get())
     }
 
 }

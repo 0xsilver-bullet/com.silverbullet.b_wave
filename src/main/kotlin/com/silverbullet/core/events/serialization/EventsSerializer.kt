@@ -1,8 +1,8 @@
 package com.silverbullet.core.events.serialization
 
 import com.silverbullet.core.events.client.ClientEvent
-import com.silverbullet.core.events.client.SeenDmMessageEvent
-import com.silverbullet.core.events.client.SendDmMessageEvent
+import com.silverbullet.core.events.client.SeenMessageEvent
+import com.silverbullet.core.events.client.SendMessageEvent
 import com.silverbullet.core.events.server.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -15,21 +15,23 @@ private val eventsSerializationModule = SerializersModule {
 
         subclass(ConnectedToUserEvent::class)
 
-        subclass(ReceivedDmMessageEvent::class)
+        subclass(ReceivedMessageEvent::class)
 
         subclass(FriendOnlineStatusEvent::class)
 
-        subclass(UpdateDmMessageEvent::class)
+        subclass(UpdateMessageEvent::class)
 
-        subclass(DmSentEvent::class)
+        subclass(MessageSentEvent::class)
+
+        subclass(AddedToChannel::class)
 
     }
 
     polymorphic(ClientEvent::class) {
 
-        subclass(SendDmMessageEvent::class)
+        subclass(SendMessageEvent::class)
 
-        subclass(SeenDmMessageEvent::class)
+        subclass(SeenMessageEvent::class)
 
     }
 }

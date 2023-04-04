@@ -1,13 +1,13 @@
 package com.silverbullet.core.events.server
 
-import com.silverbullet.core.model.DmMessage
+import com.silverbullet.core.model.Message
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@SerialName(ReceivedDmMessageEvent.EventName)
-data class ReceivedDmMessageEvent(
-    val message: DmMessage
+@SerialName(ReceivedMessageEvent.EventName)
+data class ReceivedMessageEvent(
+    val message: Message
 ): ServerEvent{
 
     companion object{

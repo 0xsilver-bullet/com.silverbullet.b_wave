@@ -1,13 +1,14 @@
 package com.silverbullet.core.events
 
+import com.silverbullet.core.databse.dao.ChannelDao
 import com.silverbullet.core.databse.dao.ConnectionDao
-import com.silverbullet.core.databse.dao.DmMessageDao
-import com.silverbullet.core.databse.entity.DmMessageEntity
+import com.silverbullet.core.databse.dao.MessageDao
+import com.silverbullet.core.databse.entity.MessageEntity
 import com.silverbullet.core.events.client.ClientEvent
-import com.silverbullet.core.events.client.SeenDmMessageEvent
-import com.silverbullet.core.events.client.SendDmMessageEvent
+import com.silverbullet.core.events.client.SeenMessageEvent
+import com.silverbullet.core.events.client.SendMessageEvent
 import com.silverbullet.core.events.server.*
-import com.silverbullet.core.mapper.toDmMessage
+import com.silverbullet.core.mapper.toMessage
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
@@ -21,7 +22,8 @@ import java.util.concurrent.ConcurrentHashMap
 class BWaveEventsEngine(
     private val serializer: Json,
     private val connectionDao: ConnectionDao,
-    private val dmsDao: DmMessageDao
+    private val channelDao: ChannelDao,
+    private val messageDao: MessageDao
 ) : EventsEngine {
 
     private val connections = ConcurrentHashMap<Int, DefaultWebSocketServerSession>()
@@ -73,52 +75,57 @@ class BWaveEventsEngine(
 
     private suspend fun handleUserEvent(userId: Int, event: ClientEvent) {
         when (event) {
-            is SendDmMessageEvent -> handleSendDmMessageEvent(userId, event)
-            is SeenDmMessageEvent -> handleSeenDmMessageEvent(userId, event)
+            is SendMessageEvent -> handleSendMessageEvent(userId, event)
+            is SeenMessageEvent -> handleSeenMessageEvent(userId, event)
         }
     }
 
-    private suspend fun handleSendDmMessageEvent(
+    private suspend fun handleSendMessageEvent(
         userId: Int,
-        event: SendDmMessageEvent
+        event: SendMessageEvent
     ) {
-        val dmMessageEntity = DmMessageEntity
-            .create(
-                text = event.text,
-                senderId = userId,
-                receiverId = event.receiverId
-            )
+        val messageEntity = MessageEntity(
+            text = event.text,
+            imageUrl = event.imageUrl,
+            senderId = userId,
+            channelId = event.channelId
+        )
 
-        dmsDao.insert(dmMessageEntity)
+        messageDao.insert(messageEntity)
 
-        val dmMessage = dmMessageEntity.toDmMessage()
+        val message = messageEntity.toMessage()
 
         // notify the receiver user
-        val receivedMessageServerEvent = ReceivedDmMessageEvent(message = dmMessage)
-        sendServerEvent(userId = dmMessageEntity.receiverId, event = receivedMessageServerEvent)
+        val receivedMessageServerEvent = ReceivedMessageEvent(message = message)
+        val channelMembers = channelDao.getChannelMembersIds(event.channelId).data
+        channelMembers.forEach { memberId ->
+            if(memberId != userId){
+                sendServerEvent(userId = memberId, event = receivedMessageServerEvent)
+            }
+        }
 
         // notify sender that message is sent
-        val senderDmSentEvent = DmSentEvent(
-            message = dmMessage,
+        val messageSentEvent = MessageSentEvent(
+            message = message,
             provisionalId = event.provisionalId
         )
-        sendServerEvent(userId = dmMessageEntity.senderId, event = senderDmSentEvent)
+        sendServerEvent(userId = userId, event = messageSentEvent)
     }
 
-    private suspend fun handleSeenDmMessageEvent(
+    private suspend fun handleSeenMessageEvent(
         userId: Int,
-        event: SeenDmMessageEvent
+        event: SeenMessageEvent
     ) {
-        val updatedMessage = dmsDao
+        val updatedMessage = messageDao
             .markMessageAsSeen(
                 messageId = event.messageId,
-                receiverId = userId
+                userId = userId
             ) ?: return
         // if the updated message is null then this message already doesn't exist.
         // notice than the user who's trying to mark message as seen must be the receiver always.
 
         // now we should notify the sender with the updated message.
-        val updateMessageEvent = UpdateDmMessageEvent(updatedMessage.toDmMessage())
+        val updateMessageEvent = UpdateMessageEvent(updatedMessage.toMessage())
 
         sendServerEvent(userId = updatedMessage.senderId, updateMessageEvent)
     }

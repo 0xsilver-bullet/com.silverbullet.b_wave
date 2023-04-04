@@ -1,14 +1,16 @@
 package com.silverbullet.core.mapper
 
-import com.silverbullet.core.databse.entity.DmMessageEntity
-import com.silverbullet.core.model.DmMessage
+import com.silverbullet.core.databse.entity.MessageEntity
+import com.silverbullet.core.model.Message
 
-fun DmMessageEntity.toDmMessage(): DmMessage =
-    DmMessage(
+
+fun MessageEntity.toMessage(): Message =
+    Message(
         text = text,
+        imageUrl = imageUrl,
         senderId = senderId,
-        receiverId = receiverId,
-        seen = seen,
+        channelId = channelId,
+        seenBy = seenBy,
         timestamp = timestamp,
         id = id
     )
