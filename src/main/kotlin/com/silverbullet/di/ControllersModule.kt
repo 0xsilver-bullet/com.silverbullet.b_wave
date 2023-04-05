@@ -1,6 +1,7 @@
 package com.silverbullet.di
 
 import com.silverbullet.feature_auth.AuthController
+import com.silverbullet.feature_channels.ChannelsController
 import com.silverbullet.feature_connection.ConnectionsController
 import com.silverbullet.feature_messages.MessageController
 import com.silverbullet.feature_profile.ProfileController
@@ -22,5 +23,9 @@ val controllersModule = module {
 
     single {
         ProfileController(get())
+    }
+
+    single {
+        ChannelsController(get())
     }
 }

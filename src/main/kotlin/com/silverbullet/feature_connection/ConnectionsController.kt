@@ -4,6 +4,8 @@ import com.silverbullet.core.databse.dao.ChannelDao
 import com.silverbullet.core.databse.dao.ConnectionDao
 import com.silverbullet.core.databse.dao.FriendshipSecretDao
 import com.silverbullet.core.databse.dao.UserDao
+import com.silverbullet.core.databse.entity.UserEntity
+import com.silverbullet.core.databse.utils.ChannelType
 import com.silverbullet.core.databse.utils.DbError
 import com.silverbullet.core.databse.utils.DbOperation
 import com.silverbullet.core.events.EventsEngine
@@ -100,8 +102,17 @@ class ConnectionsController(
             if (!isUser1Added && !isUser2Added) {
                 return@launch
             }
+
+            // Query the users data
+            val channelUsers = userDao.getUsersByIds(listOf(user1Id, user2Id)).data.map(UserEntity::toUserInfo)
+
             // DmChannel name is decided client side usually
-            val channel = Channel(null, dmChannelId)
+            val channel = Channel(
+                id = dmChannelId,
+                name = null,
+                type = ChannelType.DmChannel.ordinal,
+                users = channelUsers
+            )
             val addedToChannelEvent = AddedToChannel(channel)
 
             // notify the users
